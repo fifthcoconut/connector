@@ -1,0 +1,10 @@
+{
+  "name": "fifthcoconut",
+  "version": "0.1.0",
+  "description": "Connect a brand's project to The Fifth Coconut: the brand's own Claude sends a report of what it chooses to share (no code, no secrets), and a fresh one after each deploy.",
+  "author": { "name": "The Fifth Coconut", "url": "https://fifthcoconut.com" },
+  "homepage": "https://github.com/fifthcoconut/connector",
+  "repository": "https://github.com/fifthcoconut/connector",
+  "license": "MIT",
+  "keywords": ["fifthcoconut", "knowledge", "reports"]
+}

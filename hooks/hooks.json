@@ -1,0 +1,13 @@
+{
+  "description": "After a Wrangler deploy in a connected project, remind Claude to send The Fifth Coconut a fresh report.",
+  "hooks": {
+    "PostToolUse": [
+      {
+        "matcher": "Bash",
+        "hooks": [
+          { "type": "command", "command": "node \"${CLAUDE_PLUGIN_ROOT}/hooks/after-deploy.mjs\"", "timeout": 10 }
+        ]
+      }
+    ]
+  }
+}

@@ -1,0 +1,65 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://github.com/fifthcoconut/connector/skills/report/report.schema.json",
+  "title": "The Fifth Coconut brand report",
+  "description": "What a brand chooses to share with The Fifth Coconut. A full snapshot: facts missing from a newer report are proposed for removal.",
+  "type": "object",
+  "required": ["format", "brand", "generated_at", "facts"],
+  "additionalProperties": false,
+  "properties": {
+    "format": { "const": "fifthcoconut-report/1" },
+    "brand": { "type": "string", "pattern": "^[a-z0-9](?:[a-z0-9-]{0,38}[a-z0-9])?$", "description": "The brand's slug in The Fifth Coconut, e.g. spuulny-hu" },
+    "generated_at": { "type": "string", "description": "ISO 8601 time the report was written" },
+    "generator": { "type": "string", "description": "Who/what wrote it, e.g. 'Claude Code connector in spuulny'" },
+    "source": {
+      "type": "object",
+      "additionalProperties": false,
+      "properties": {
+        "repo": { "type": "string", "description": "Informational: the repo the report describes" },
+        "commit": { "type": "string", "description": "Informational: the commit the report describes" }
+      }
+    },
+    "facts": {
+      "type": "array",
+      "maxItems": 500,
+      "items": {
+        "type": "object",
+        "required": ["key", "domain", "category", "title", "statement", "confidence", "evidence"],
+        "additionalProperties": false,
+        "properties": {
+          "key": { "type": "string", "pattern": "^(brand|technical):[a-z0-9][a-z0-9_.:\\-]{1,120}$", "description": "Stable id; keep it the same across reports so changes show as updates" },
+          "domain": { "enum": ["brand", "technical"] },
+          "category": {
+            "enum": ["summary", "services", "products", "pricing", "audience", "positioning", "tone_of_voice", "policies",
+                     "claims", "strategy", "gaps", "contact", "website", "website_page", "language", "other",
+                     "application", "worker", "endpoint", "pages", "data_model", "integration", "deployment",
+                     "content_publishing", "workflow", "limitation"],
+            "description": "Brand categories for domain=brand; application…limitation (and other) for domain=technical"
+          },
+          "title": { "type": "string", "maxLength": 120 },
+          "statement": { "type": "string", "maxLength": 1200, "description": "One precise sentence, in English" },
+          "confidence": { "enum": ["high", "medium", "low"] },
+          "status_in_source": { "enum": ["current", "planned", "unclear"] },
+          "deployment_status": { "enum": ["confirmed_live", "unknown", "not_deployed"], "description": "Technical facts only" },
+          "caveat": { "type": "string", "maxLength": 300 },
+          "evidence": {
+            "type": "array",
+            "minItems": 1,
+            "maxItems": 8,
+            "items": {
+              "type": "object",
+              "required": ["path", "quote"],
+              "additionalProperties": false,
+              "properties": {
+                "path": { "type": "string", "description": "Path relative to the project root" },
+                "lines": { "type": "string", "description": "Optional, e.g. '12-14'" },
+                "quote": { "type": "string", "maxLength": 600, "description": "Verbatim text from that file" }
+              }
+            }
+          }
+        }
+      }
+    },
+    "open_questions": { "type": "array", "maxItems": 30, "items": { "type": "string", "maxLength": 500 } }
+  }
+}

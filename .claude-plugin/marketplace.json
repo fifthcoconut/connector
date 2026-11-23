@@ -1,0 +1,11 @@
+{
+  "name": "fifthcoconut",
+  "owner": { "name": "The Fifth Coconut", "url": "https://fifthcoconut.com" },
+  "plugins": [
+    {
+      "name": "fifthcoconut",
+      "source": "./",
+      "description": "Connect a brand's project to The Fifth Coconut and send it reports of what the brand chooses to share."
+    }
+  ]
+}
