@@ -9,12 +9,17 @@ file it came from. The owner reviews every fact before it becomes knowledge.
 
 ## Install (in the brand's Claude Code)
 
+**VS Code extension:** type `/plugins` in the Claude panel to open *Manage plugins*. On the **Marketplaces** tab add
+`fifthcoconut/connector`, then on the **Plugins** tab find **fifthcoconut**, click **Install** and choose
+*Install for this project*.
+
+**Terminal (`claude`):**
+
 ```
 /plugin marketplace add fifthcoconut/connector
 /plugin install fifthcoconut@fifthcoconut
+/reload-plugins
 ```
-
-If the commands below don't show up yet, run `/reload-plugins` or restart Claude Code.
 
 ## Connect a brand (once)
 
