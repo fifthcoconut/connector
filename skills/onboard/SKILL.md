@@ -17,7 +17,7 @@ Instead, this project's Claude sends a **report**: a JSON list of facts about th
 tone, high-level architecture) that the share policy allows, each with a short quote from the file it came from.
 The owner reviews every fact before it becomes knowledge. Nothing is deployed and no files are uploaded.
 
-The one-time code works once and expires after 7 days. It is exchanged for this brand's own report key, which is
+The one-time code works once and expires after 1 hour. It is exchanged for this brand's own report key, which is
 stored only in `.fifthcoconut/key` (git-ignored) and is never printed or committed.
 
 ## Steps
