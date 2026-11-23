@@ -7,7 +7,7 @@ argument-hint: <brand> <one-time-code> <dashboard-url>
 # Connect this brand to The Fifth Coconut
 
 Arguments: $ARGUMENTS
-(Expected: `<brand> <one-time-code> <dashboard-url>`, e.g. `spuulny-hu tfc-spuulny-hu-… https://app.fifthcoconut.com`.
+(Expected: `<brand> <one-time-code> <dashboard-url>`, e.g. `example-site-com tfc-example-site-com-… https://app.fifthcoconut.com`.
 If any is missing, ask the user to copy the whole command from the dashboard: brand → Settings → Create connection code.)
 
 ## What this is (tell the user briefly before you start)
