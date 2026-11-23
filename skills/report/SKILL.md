@@ -36,14 +36,14 @@ It prints `"mode": "changes"` or `"mode": "full"` (with the reason). Follow the 
 
 ## 2a. Changes only (`"mode": "changes"`)
 
-The output lists `changed_files` since the last report's commit (`since`), including uncommitted and new files, the
-already-sent facts that quote those files (`affected_facts`), and the keys and titles of all other facts sent
-before (`other_known_facts`).
+The output lists the `changed_files` since the last report (found with git, or without git by comparing file
+fingerprints), the already-sent facts that quote those files (`affected_facts`), and the keys and titles of all
+other facts sent before (`other_known_facts`).
 
 1. Read **only** the changed files that can matter for what this brand shares (pages, content, config, routes, docs;
-   skip lockfiles, build output, images, tests and anything in `skipped_secret_files`). Use `git diff <since> -- <file>`
-   when the diff is enough.
-2. Write `.fifthcoconut/report.json` with `"scope": "changes"` and `source.since_commit` set to `since`:
+   skip lockfiles, build output, images, tests and anything in `skipped_secret_files`). If `since` is given (git),
+   `git diff <since> -- <file>` is enough when it shows the change clearly.
+2. Write `.fifthcoconut/report.json` with `"scope": "changes"` (and `source.since_commit` set to `since`, if given):
    - `facts`: only facts that are **new or changed** (complete fact objects, as in 3 below). Reuse the key of an
      affected or other known fact when it describes the same thing, so it shows as an update.
    - `removed`: `[{ "key": ..., "reason": ... }]` for previously sent facts that the changes made untrue.
@@ -65,8 +65,8 @@ It must match `report.schema.json` next to this file:
 
 - `format`: `"fifthcoconut-report/1"`; `brand`: the `brand` from `.fifthcoconut/config.json`; `scope`: `"changes"` or
   `"full"`; `generated_at`: now, ISO 8601; `generator`: `"Claude Code connector in <project name>"`;
-  `source`: `{"repo": "<project name>", "commit": "<head from changes.mjs>"}` (+ `since_commit` for changes; leave out
-  `commit` if not a git repo).
+  `source`: `{"repo": "<project name>", "commit": "<head from changes.mjs>"}` (+ `since_commit` for changes when given;
+  leave out `commit` if there is no `head`).
 - Each fact: `key` (`brand:<category>:<slug>` or `technical:<category>:<slug>`), `domain` (`brand`/`technical`),
   `category`, `title`, `statement` (one precise English sentence), `confidence` (`high`/`medium`/`low`),
   `status_in_source` (`current`/`planned`/`unclear`), optional `caveat`, and for technical facts `deployment_status`

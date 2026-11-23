@@ -4,14 +4,16 @@
 //
 // Prints JSON:
 //   { "mode": "full", "reason": ..., "head": ..., "known_facts": [...] }
-//   { "mode": "changes", "since": <commit of the last report>, "head": ..., "changed_files": [{ path, change }],
-//     "skipped_secret_files": [...], "affected_facts": [...], "other_known_facts": [{ key, title }] }
-// A full report is needed the first time, when asked for, when the project is not a git repository, or when the last
-// report's commit can't be found. Otherwise only the files changed since that commit (including uncommitted and new
-// files) need reading, plus the facts already sent that quote them.
+//   { "mode": "changes", "found_with": "git" | "fingerprints", "since": <commit of the last report, git only>, "head": ...,
+//     "changed_files": [{ path, change }], "skipped_secret_files": [...], "affected_facts": [...],
+//     "other_known_facts": [{ key, title }] }
+// A full report is needed the first time and when asked for. Otherwise only the files changed since the last report
+// need reading, plus the facts already sent that quote them. Changed files are found with git (the last report's
+// commit, plus uncommitted and new files) or, without git, by comparing file fingerprints recorded when the last
+// report was sent (.fifthcoconut/files.json).
 import { execFileSync } from "node:child_process";
 import { join } from "node:path";
-import { findProject, readJson, tfcDir } from "../../lib/project.mjs";
+import { SECRET_FILE, compareFingerprints, findProject, fingerprints, readJson, tfcDir } from "../../lib/project.mjs";
 
 const root = findProject();
 if (!root) { console.error("This project is not connected. Run /fifthcoconut:onboard first."); process.exit(1); }
@@ -34,21 +36,29 @@ const full = (reason) => {
 };
 if (wantFull) full("a full report was requested");
 if (!sent || !state) full("no earlier report from this project is on record here (.fifthcoconut/state.json)");
-if (!head) full("this project is not a git repository, so changes can't be listed");
-if (!state.commit) full("the last report did not record a commit");
-if (git("cat-file", "-e", `${state.commit}^{commit}`) === null) full(`the last report's commit ${state.commit} is not in this repository`);
 
-// Changes since the last report's commit, including uncommitted work, plus new untracked files.
 const changes = new Map();
-for (const line of (git("diff", "--name-status", "--relative", "-M", state.commit) ?? "").split("\n").filter(Boolean)) {
-  const [st, a, b] = line.split("\t");
-  const kind = st[0] === "A" ? "added" : st[0] === "D" ? "deleted" : st[0] === "R" ? "renamed" : "modified";
-  if (kind === "renamed") { changes.set(a, "deleted (renamed)"); changes.set(b, `renamed from ${a}`); }
-  else changes.set(a, kind);
+let foundWith;
+if (head && state.commit && git("cat-file", "-e", `${state.commit}^{commit}`) !== null) {
+  // Git: changes since the last report's commit, including uncommitted work, plus new untracked files.
+  foundWith = "git";
+  for (const line of (git("diff", "--name-status", "--relative", "-M", state.commit) ?? "").split("\n").filter(Boolean)) {
+    const [st, a, b] = line.split("\t");
+    const kind = st[0] === "A" ? "added" : st[0] === "D" ? "deleted" : st[0] === "R" ? "renamed" : "modified";
+    if (kind === "renamed") { changes.set(a, "deleted (renamed)"); changes.set(b, `renamed from ${a}`); }
+    else changes.set(a, kind);
+  }
+  for (const p of (git("ls-files", "--others", "--exclude-standard") ?? "").split("\n").filter(Boolean)) if (!changes.has(p)) changes.set(p, "added");
+} else {
+  // No git (or the commit is gone): compare file fingerprints with the ones recorded at the last report.
+  const before = readJson(join(dir, "files.json"), null)?.files;
+  if (!before) full("no file fingerprints from the last report are on record here (.fifthcoconut/files.json)");
+  const now = fingerprints(root);
+  if (!now) full("the project has too many files to compare (over 20,000)");
+  foundWith = "fingerprints";
+  for (const c of compareFingerprints(before, now)) changes.set(c.path, c.change);
 }
-for (const p of (git("ls-files", "--others", "--exclude-standard") ?? "").split("\n").filter(Boolean)) if (!changes.has(p)) changes.set(p, "added");
 
-const SECRET_FILE = /(^|\/)(\.env[^/]*|\.dev\.vars[^/]*|[^/]*\.(pem|key|p12|pfx)|id_[a-z0-9]+|\.npmrc|credentials[^/]*)$/i;
 const changed = [];
 const secret = [];
 for (const [path, change] of changes) {
@@ -60,7 +70,7 @@ const affected = known.filter((f) => (f.evidence ?? []).some((e) => touched.has(
 const affectedKeys = new Set(affected.map((f) => f.key));
 
 console.log(JSON.stringify({
-  mode: "changes", since: state.commit, head,
+  mode: "changes", found_with: foundWith, since: foundWith === "git" ? state.commit : undefined, head: head ?? undefined,
   changed_files: changed,
   skipped_secret_files: secret.map((c) => c.path),
   affected_facts: affected.map(brief),

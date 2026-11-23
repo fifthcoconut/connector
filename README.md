@@ -43,10 +43,11 @@ Nothing is sent on a normal deploy. An update is sent only when one is requested
 After each deploy made from Claude Code (`wrangler deploy`, `npm run deploy`, …) the plugin asks the dashboard whether
 an update is requested. If not, it stays silent and the deploy costs no Claude usage. If so, Claude sends it.
 
-An update covers **only what changed** since the last report: the files changed since that report's commit (including
-uncommitted and new files) and the facts that quote them. Facts it leaves out stay as they are; facts the changes made
-untrue are listed as removed. A full report rereads everything: the first time, when asked for, or when the project is
-not a git repository.
+An update covers **only what changed** since the last report: the changed files and the facts that quote them. Facts
+it leaves out stay as they are; facts the changes made untrue are listed as removed. Changed files are found with git
+(the last report's commit, plus uncommitted and new files) or, in projects without git, by comparing fingerprints
+(SHA-256 hashes) of the project's files with the ones recorded at the last report. A full report rereads everything:
+the first time, and when asked for.
 
 `/fifthcoconut:report` sends one right away (`/fifthcoconut:report full` for a full one).
 
@@ -59,6 +60,7 @@ not a git repository.
 | `.fifthcoconut/report.json` | the last report written (no secrets) | optional |
 | `.fifthcoconut/sent-facts.json` | everything this project has sent (used to write the next update) | optional |
 | `.fifthcoconut/state.json` | the commit the last report described | optional |
+| `.fifthcoconut/files.json` | fingerprints (hashes) of the project's files at the last report; no contents | optional |
 | `.fifthcoconut/key` | the brand's report key | **never** (added to `.gitignore`) |
 
 ## What is sent

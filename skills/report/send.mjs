@@ -2,11 +2,12 @@
 // Check .fifthcoconut/report.json and send it to The Fifth Coconut with this brand's key.
 // Usage (from the project root): node send.mjs [path-to-report]   (default .fifthcoconut/report.json)
 // Prints the server's answer. The key is read from .fifthcoconut/key and never printed.
-// After the dashboard accepts a report, .fifthcoconut/sent-facts.json (everything this project has sent) and
-// .fifthcoconut/state.json (the commit it described) are updated, so the next update only covers what changed.
+// After the dashboard accepts a report, .fifthcoconut/sent-facts.json (everything this project has sent),
+// .fifthcoconut/state.json (the commit it described) and .fifthcoconut/files.json (file fingerprints) are updated, so
+// the next update only covers what changed.
 import { existsSync, readFileSync, writeFileSync } from "node:fs";
 import { join, resolve } from "node:path";
-import { findProject, readConfig, readJson, readKey, tfcDir } from "../../lib/project.mjs";
+import { findProject, fingerprints, readConfig, readJson, readKey, tfcDir } from "../../lib/project.mjs";
 
 const fail = (msg) => { console.error(`Not sent: ${msg}`); process.exit(1); };
 
@@ -68,6 +69,10 @@ if (res.ok && (body.status === "processed" || body.status === "unchanged")) {
   writeFileSync(join(dir, "state.json"), JSON.stringify({
     commit: report.source?.commit ?? null, scope, sent_at: new Date().toISOString(),
   }, null, 2) + "\n");
+  // Fingerprints of the project's files as this report describes them, so the next update can find what changed
+  // even without git. Hashes only: no file contents are stored, and secret files are skipped.
+  const files = fingerprints(root);
+  if (files) writeFileSync(join(dir, "files.json"), JSON.stringify({ at: new Date().toISOString(), files }, null, 2) + "\n");
 }
 
 console.log(JSON.stringify({ http_status: res.status, ...body }, null, 2));
