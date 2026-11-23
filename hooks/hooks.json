@@ -1,5 +1,5 @@
 {
-  "description": "After a Wrangler deploy in a connected project, remind Claude to send The Fifth Coconut a fresh report.",
+  "description": "After a deploy in a connected project, check whether The Fifth Coconut requested an update; only then ask Claude to send it.",
   "hooks": {
     "PostToolUse": [
       {

@@ -50,19 +50,21 @@ stored only in `.fifthcoconut/key` (git-ignored) and is never printed or committ
    - Exports, backups, database dumps, logs.
    ```
 
-3. **Remember to report after deploys.** Add this section to the project's `CLAUDE.md` (create it if missing; keep
-   the rest of the file as it is):
+3. **Note how updates work.** Add this section to the project's `CLAUDE.md` (create it if missing; keep the rest of
+   the file as it is; if an older "The Fifth Coconut" section exists, replace it):
 
    ```markdown
    ## The Fifth Coconut
-   After every successful deploy (for example `wrangler deploy`), run /fifthcoconut:report to send a fresh report.
-   What may be shared is in `.fifthcoconut/share-policy.md`. Never print or commit `.fifthcoconut/key`.
+   This project sends The Fifth Coconut an update only when one is requested (by the owner in the dashboard, or with
+   /fifthcoconut:sync). After a deploy the plugin says whether one is due; only then run /fifthcoconut:report.
+   Never send reports on your own. What may be shared is in `.fifthcoconut/share-policy.md`.
+   Never print or commit `.fifthcoconut/key`.
    ```
 
-   (The plugin also reminds Claude after a `wrangler deploy`.)
+4. **First report.** Run the `/fifthcoconut:report` skill now with the argument `full` and follow it fully. This
+   first report is complete: it covers the brand and the technical side as far as the share policy allows. Later
+   updates cover only what changed.
 
-4. **First report.** Run the `/fifthcoconut:report` skill now and follow it fully. This first report should be
-   complete: cover the brand and the technical side as far as the share policy allows.
-
-5. **Finish** with a short message: connected brand, number of facts sent, the server's answer, and that the owner
-   now reviews the proposals in the dashboard.
+5. **Finish** with a short message: connected brand, number of facts sent, the server's answer, that the owner now
+   reviews the proposals in the dashboard, and that further updates are sent only when requested (in the dashboard or
+   with `/fifthcoconut:sync`), after the next deploy.

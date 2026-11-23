@@ -2,7 +2,7 @@
   "$schema": "https://json-schema.org/draft/2020-12/schema",
   "$id": "https://github.com/fifthcoconut/connector/skills/report/report.schema.json",
   "title": "The Fifth Coconut brand report",
-  "description": "What a brand chooses to share with The Fifth Coconut. A full snapshot: facts missing from a newer report are proposed for removal.",
+  "description": "What a brand chooses to share with The Fifth Coconut. scope full (default): a complete snapshot, facts missing from it are proposed for removal. scope changes: only new or changed facts, plus `removed` for facts no longer true; facts it leaves out stay as they are.",
   "type": "object",
   "required": ["format", "brand", "generated_at", "facts"],
   "additionalProperties": false,
@@ -10,13 +10,15 @@
     "format": { "const": "fifthcoconut-report/1" },
     "brand": { "type": "string", "pattern": "^[a-z0-9](?:[a-z0-9-]{0,38}[a-z0-9])?$", "description": "The brand's slug in The Fifth Coconut, e.g. example-site-com" },
     "generated_at": { "type": "string", "description": "ISO 8601 time the report was written" },
+    "scope": { "enum": ["full", "changes"], "default": "full", "description": "full: complete snapshot. changes: only what changed since the previous report" },
     "generator": { "type": "string", "description": "Who/what wrote it, e.g. 'Claude Code connector in example-site'" },
     "source": {
       "type": "object",
       "additionalProperties": false,
       "properties": {
         "repo": { "type": "string", "description": "Informational: the repo the report describes" },
-        "commit": { "type": "string", "description": "Informational: the commit the report describes" }
+        "commit": { "type": "string", "description": "The commit the report describes (the next update covers changes since it)" },
+        "since_commit": { "type": "string", "description": "scope changes: the commit of the previous report" }
       }
     },
     "facts": {
@@ -57,6 +59,20 @@
               }
             }
           }
+        }
+      }
+    },
+    "removed": {
+      "type": "array",
+      "maxItems": 500,
+      "description": "scope changes only: facts sent earlier that are no longer true",
+      "items": {
+        "type": "object",
+        "required": ["key"],
+        "additionalProperties": false,
+        "properties": {
+          "key": { "type": "string" },
+          "reason": { "type": "string", "maxLength": 300, "description": "Why it is no longer true, e.g. which change removed it" }
         }
       }
     },

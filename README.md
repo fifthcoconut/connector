@@ -23,7 +23,7 @@ file it came from. The owner reviews every fact before it becomes knowledge.
 
 ## Connect a brand (once)
 
-In the dashboard: the brand → **Settings** → **Create connection code**, then run the command it shows in the
+In the dashboard: the brand → **Settings** → **Create connect command**, then run the command it shows in the
 brand's project:
 
 ```
@@ -31,12 +31,24 @@ brand's project:
 ```
 
 This exchanges the one-time code for the brand's report key, writes a share policy with you
-(`.fifthcoconut/share-policy.md`), adds a note to the project's `CLAUDE.md`, and sends the first report.
+(`.fifthcoconut/share-policy.md`), adds a note to the project's `CLAUDE.md`, and sends the first (full) report.
 
-## Reports
+## Updates: only when requested, only what changed
 
-- `/fifthcoconut:report` sends a fresh, complete report at any time.
-- After a `wrangler deploy` in a connected project, the plugin reminds Claude to send one.
+Nothing is sent on a normal deploy. An update is sent only when one is requested:
+
+- by the owner, in the dashboard (the brand → **Settings** → **Request update** or **Request full report**), or
+- from the brand's Claude: `/fifthcoconut:sync` (or `/fifthcoconut:sync full`).
+
+After each deploy made from Claude Code (`wrangler deploy`, `npm run deploy`, …) the plugin asks the dashboard whether
+an update is requested. If not, it stays silent and the deploy costs no Claude usage. If so, Claude sends it.
+
+An update covers **only what changed** since the last report: the files changed since that report's commit (including
+uncommitted and new files) and the facts that quote them. Facts it leaves out stay as they are; facts the changes made
+untrue are listed as removed. A full report rereads everything: the first time, when asked for, or when the project is
+not a git repository.
+
+`/fifthcoconut:report` sends one right away (`/fifthcoconut:report full` for a full one).
 
 ## What is stored in the project
 
@@ -45,10 +57,13 @@ This exchanges the one-time code for the brand's report key, writes a share poli
 | `.fifthcoconut/config.json` | brand id and report address | yes |
 | `.fifthcoconut/share-policy.md` | what may and may not be shared | yes |
 | `.fifthcoconut/report.json` | the last report written (no secrets) | optional |
+| `.fifthcoconut/sent-facts.json` | everything this project has sent (used to write the next update) | optional |
+| `.fifthcoconut/state.json` | the commit the last report described | optional |
 | `.fifthcoconut/key` | the brand's report key | **never** (added to `.gitignore`) |
 
 ## What is sent
 
-Only `.fifthcoconut/report.json`, to `<dashboard>/api/brands/<brand>/reports`, with the brand's key. No files, no
+Only `.fifthcoconut/report.json`, to `<dashboard>/api/brands/<brand>/reports`, with the brand's key (and, after a
+deploy, a check of `<dashboard>/api/brands/<brand>/sync` that sends nothing about the project). No files, no
 code, no deploys. `send.mjs` refuses reports that contain anything that looks like a secret, and the dashboard checks
 again. The report format is described in [`skills/report/report.schema.json`](skills/report/report.schema.json).
